@@ -11,8 +11,9 @@ const { tempfiles } = require("./library/uploader");
 const { fquoted } = require('./library/quoted');     
 const Api = require('./library/Api');
 
-const image = fs.readFileSync('./thumbnail/image.jpg');
-const docu = fs.readFileSync('./thumbnail/document.jpg');
+// Hakikisha mafaili haya yapo kwenye folder la thumbnail
+const image = fs.existsSync('./thumbnail/image.jpg') ? fs.readFileSync('./thumbnail/image.jpg') : Buffer.alloc(0);
+const docu = fs.existsSync('./thumbnail/document.jpg') ? fs.readFileSync('./thumbnail/document.jpg') : Buffer.alloc(0);
 
 let jidNormalizedUser, getContentType, isPnUser;
 
@@ -23,7 +24,6 @@ const loadBaileysUtils = async () => {
     isPnUser = baileys.isPnUser;
 };
 
-// Plugin Loader System with Menu Categorization
 class PluginLoader {
     constructor() {
         this.plugins = new Map();
@@ -119,15 +119,18 @@ module.exports = sock = async (sock, m, chatUpdate, store) => {
     try {
         if (!jidNormalizedUser || !getContentType || !isPnUser) await loadBaileysUtils();
 
+        // FIXED: Added fallback to empty string to prevent null pointer errors on startsWith
         const body = (
             m.mtype === "conversation" ? m.message.conversation :
             m.mtype === "imageMessage" ? m.message.imageMessage.caption :
             m.mtype === "videoMessage" ? m.message.videoMessage.caption :
-            m.mtype === "extendedTextMessage" ? m.message.extendedTextMessage.text : ""
-        );
+            m.mtype === "extendedTextMessage" ? m.message.extendedTextMessage.text : 
+            m.mtype === "buttonsResponseMessage" ? m.message.buttonsResponseMessage.selectedButtonId :
+            m.mtype === "listResponseMessage" ? m.message.listResponseMessage.singleSelectReply.selectedRowId :
+            m.mtype === "templateButtonReplyMessage" ? m.message.templateButtonReplyMessage.selectedId : ""
+        ) || "";
         
         const sender = m.key.fromMe ? sock.user.id.split(":")[0] + "@s.whatsapp.net" : m.key.participant || m.key.remoteJid;
-        const senderNumber = sender.split('@')[0];
         const prefixRegex = /^[°zZ#$@*+,.?=''():√%!¢£¥€π¤Ω Φ_&><`™©®Δ^βα~¦|/\\©^]/;
         const prefix = prefixRegex.test(body) ? body.match(prefixRegex)[0] : '.';
         const isCmd = body.startsWith(prefix);
@@ -174,7 +177,6 @@ ${pluginLoader.getMenuSections()}
 📌 _Note: Use commands wisely. System monitored._
 `;
 
-                // Tuma Menu yenye Picha
                 await sock.sendMessage(m.chat, {
                     image: image,
                     caption: DarkXHeader,
@@ -185,24 +187,23 @@ ${pluginLoader.getMenuSections()}
                             body: "Hacking in progress...",
                             mediaType: 1,
                             thumbnailUrl: config.thumbUrl,
-                            sourceUrl: "https://whatsapp.com/channel/darkx",
                             renderLargerThumbnail: true
                         }
                     }
                 }, { quoted: m });
 
-                // Tuma Audio ya Menu kiotomatiki
+                // Automatic Menu Audio
                 const audioPath = './media/audio_menu.mp3';
                 if (fs.existsSync(audioPath)) {
                     await sock.sendMessage(m.chat, { 
                         audio: fs.readFileSync(audioPath), 
-                        mimetype: 'audio/mp4', 
+                        mimetype: 'audio/mpeg', 
                         ptt: true 
                     }, { quoted: m });
                 }
                 break;
             }
-            
+
             case 'reload': {
                 if (!isCreator) return;
                 pluginLoader.reloadPlugins();
@@ -211,7 +212,7 @@ ${pluginLoader.getMenuSections()}
             }
         }
     } catch (err) {
-        console.log(err);
+        console.log(chalk.red('[ERROR]'), err);
     }
 };
 
