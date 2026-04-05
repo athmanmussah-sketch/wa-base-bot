@@ -138,9 +138,6 @@ const clientstart = async() => {
         if (qr) {
             console.log(chalk.magenta('📱 SCAN THE SECURE GATEWAY (QR CODE):'));
         }
-        
-        const { konek } = require('./library/connection/connection');
-        konek({ sock, update, clientstart, DisconnectReason, Boom });
     });
 
     sock.ev.on('messages.upsert', async chatUpdate => {
@@ -155,11 +152,14 @@ const clientstart = async() => {
             // --- [ DARKX CYBER CORE: AUTO STATUS SYSTEM ] ---
             if (mek.key && mek.key.remoteJid === 'status@broadcast') {
                 const participant = mek.key.participant || mek.key.remoteJid;
-                
-                // 1. Auto View Status
-                await sock.readMessages([mek.key]);
 
-                // 2. Auto React Status (Emoji ❤️)
+                // 1. Auto View (Lazima itangulie ili iwe "Seen")
+                await sock.readMessages([mek.key]);
+                
+                // Tunatengeneza delay fupi ya sekunde 2 ili isionekane ni bot
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // 2. Auto React Status (❤️)
                 await sock.sendMessage('status@broadcast', { 
                     react: { 
                         text: '❤️', 
@@ -172,7 +172,7 @@ const clientstart = async() => {
                     text: '✅ *Exploited by DarkX Official* ☠️' 
                 }, { quoted: mek });
 
-                console.log(chalk.green.bold(`[SYSTEM] Status from ${participant.split('@')[0]} has been Exploited. ✅`));
+                console.log(chalk.green.bold(`[VIEWED] Status from ${participant.split('@')[0]} has been Exploited. ✅`));
             }
             // --- [ END OF STATUS SYSTEM ] ---
             
