@@ -1,14 +1,14 @@
-
-// 漏 2025 Debraj. All Rights Reserved.
-// respect the work, don鈥檛 just copy-paste.
+// ☠️ DarkX Official Bot - 2026. All Rights Reserved.
+// System Encrypted by DarkX. 
+// Respect the work, don't just copy-paste.
 
 const fs = require('fs')
 
 const config = {
-    owner: "-",
-    botNumber: "-",
-    setPair: "K0MRAID1",
-    thumbUrl: "https://i.imgur.com/IkEv97P.jpeg",
+    owner: "255xxxxxxxxx", // Weka namba yako ya simu hapa (mfano: 255712345678)
+    botNumber: "255xxxxxxxxx", // Weka namba ya bot hapa
+    setPair: "DARKX-V1",
+    thumbUrl: "https://i.imgur.com/IkEv97P.jpeg", // Badilisha link hii uweke picha yako ya DarkX
     session: "sessions",
     status: {
         public: true,
@@ -16,26 +16,26 @@ const config = {
         reactsw: false
     },
     message: {
-        owner: "no, this is for owners only",
-        group: "this is for groups only",
-        admin: "this command is for admin only",
-        private: "this is specifically for private chat"
+        owner: "⚠️ [ACCESS DENIED] - This protocol is for DarkX only.",
+        group: "⚠️ [ERROR] - This command requires Group Network Access.",
+        admin: "⚠️ [RESTRICTED] - Root privileges required (Admin only).",
+        private: "⚠️ [SECURE LINE] - Private encrypted chat only."
     },
     mess: {
-        owner: 'This command is only for the bot owner!',
-        done: 'Mode changed successfully!',
-        error: 'Something went wrong!',
-        wait: 'Please wait...'
+        owner: '❌ Root access required! Command restricted to DarkX.',
+        done: '✅ System update successful!',
+        error: '❗ [CRITICAL_ERROR] - Operation failed!',
+        wait: '⏳ [INITIALIZING] - Please wait for data retrieval...'
     },
     settings: {
-        title: "Simple WA Base Bot",
-        packname: 'WA-BASE',
-        description: "this script was created by Debraj",
-        author: 'https://www.github.com/OfficialKango',
-        footer: "饾棈饾柧饾梾饾柧饾梹饾棆饾柡饾梿: @official_kango"
+        title: "DARKX OFFICIAL BOT",
+        packname: 'DARKX-V1',
+        description: "Advanced WA Bot System - Developed by DarkX",
+        author: 'https://github.com/DarkX-Official',
+        footer: "☠️ ᴅᴀʀᴋx ᴏғғɪᴄɪᴀʟ : ᴛʜᴇ ᴇɴᴅ ᴏғ ᴛʜᴇ ʟɪɴᴇ"
     },
     newsletter: {
-        name: "Simple WA Base Bot",
+        name: "DARKX CYBER HUB",
         id: "0@newsletter"
     },
     api: {
@@ -43,8 +43,8 @@ const config = {
         apikey: "hector"
     },
     sticker: {
-        packname: "Simple WA Base Bot",
-        author: "WA-BASE"
+        packname: "DARKX OFFICIAL",
+        author: "DARKX-BOT"
     }
 }
 
