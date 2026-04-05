@@ -1,15 +1,16 @@
-
 // © 2025 Debraj. All Rights Reserved.
 // respect the work, don’t just copy-paste.
 
 const fs = require('fs')
 const { tmpdir } = require("os")
 const Crypto = require("crypto")
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+// Toleo la Termux: tumia system ffmpeg (imewekwa kwa 'pkg install ffmpeg')
 const ff = require('fluent-ffmpeg')
 const webp = require("node-webpmux")
 const path = require("path")
-ff.setFfmpegPath(ffmpegPath);
+
+// Weka path ya ffmpeg ya mfumo (inapatikana Termux baada ya 'pkg install ffmpeg')
+ff.setFfmpegPath('ffmpeg');
 
 async function imageToWebp (media) {
     const tmpFileOut = path.join(tmpdir(), `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
@@ -159,7 +160,6 @@ async function addExif(webpSticker, packname, author, categories = [''], extra =
   return await img.save(null)
 }
 
-
 module.exports = { 
     imageToWebp,
     videoToWebp, 
@@ -168,4 +168,4 @@ module.exports = {
     writeExif, 
     exifAvatar, 
     addExif 
-}
+		}
