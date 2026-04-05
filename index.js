@@ -1,36 +1,32 @@
 console.clear();
 
-const config = () => require('./settings/config');
-process.on("uncaughtException", console.error);
+const pino = require("pino");
+const fs = require("fs");
+const chalk = require("chalk");
+const readline = require("readline");
 
-const pino = require('pino');
-const fs = require('fs');
-const chalk = require('chalk');
-const readline = require('readline');
-const path = require('path');
-const { Boom } = require('@hapi/boom');
-
-let makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, jidDecode, downloadContentFromMessage;
+let makeWASocket,
+    useMultiFileAuthState,
+    fetchLatestBaileysVersion,
+    DisconnectReason;
 
 const loadBaileys = async () => {
-    const baileys = await import('@whiskeysockets/baileys');
+    const baileys = await import("@whiskeysockets/baileys");
 
     makeWASocket = baileys.default;
     useMultiFileAuthState = baileys.useMultiFileAuthState;
-    DisconnectReason = baileys.DisconnectReason;
     fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
-    jidDecode = baileys.jidDecode;
-    downloadContentFromMessage = baileys.downloadContentFromMessage;
+    DisconnectReason = baileys.DisconnectReason;
 };
 
 const question = (text) => {
     const rl = readline.createInterface({
         input: process.stdin,
-        output: process.stdout
+        output: process.stdout,
     });
 
-    return new Promise(resolve => {
-        rl.question(text, ans => {
+    return new Promise((resolve) => {
+        rl.question(text, (ans) => {
             rl.close();
             resolve(ans);
         });
@@ -43,23 +39,24 @@ async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("./session");
     const { version } = await fetchLatestBaileysVersion();
 
-    // ✅ FIXED BROWSER (IMPORTANT)
     const sock = makeWASocket({
         logger: pino({ level: "silent" }),
         printQRInTerminal: false,
         auth: state,
+
+        // ✅ FIXED BROWSER (NO ERROR)
+        browser: ["Android", "Chrome", "1.0.0"],
         version,
-        browser: ["Android", "Chrome", "1.0.0"]
     });
 
-    // 🔥 PAIRING CODE FIX
+    // 🔥 Pairing Code System
     if (!sock.authState.creds.registered) {
-        const phoneNumber = await question("\nEnter WhatsApp number (2557XXXXXXXX): ");
-        const code = await sock.requestPairingCode(phoneNumber.trim());
+        const phone = await question("Enter WhatsApp number (2557XXXXXXXX): ");
+        const code = await sock.requestPairingCode(phone.trim());
 
-        console.log("\n====================");
+        console.log("\n======================");
         console.log("PAIRING CODE:", code);
-        console.log("====================\n");
+        console.log("======================\n");
     }
 
     sock.ev.on("creds.update", saveCreds);
@@ -72,8 +69,11 @@ async function startBot() {
         }
 
         if (connection === "close") {
-            const statusCode = lastDisconnect?.error?.output?.statusCode;
-            const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+            const statusCode =
+                lastDisconnect?.error?.output?.statusCode;
+
+            const shouldReconnect =
+                statusCode !== DisconnectReason.loggedOut;
 
             console.log(chalk.red("❌ Connection closed"));
 
@@ -88,10 +88,8 @@ async function startBot() {
         const msg = messages[0];
         if (!msg.message) return;
 
-        console.log("📩 Message received");
+        console.log("📩 New message received");
     });
-
-    return sock;
 }
 
 startBot();
