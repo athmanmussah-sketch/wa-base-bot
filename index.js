@@ -29,9 +29,7 @@ const chalk = require("chalk");
 const path = require("path");
 
 const { Boom } = require('@hapi/boom');
-const { getBuffer } = require('./library/function');
 const { smsg } = require('./library/serialize');
-const { videoToWebp, writeExifImg, writeExifVid, addExif, toPTT, toAudio } = require('./library/exif');
 
 const question = (text) => {
     const rl = readline.createInterface({
@@ -111,32 +109,16 @@ const clientstart = async() => {
             
             const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
             sock.sendMessage(botNumber, {
-                text:
-                    `☠️ *DARKX SYSTEM CONNECTED* ☠️\n\n` +
-                    `> 👤 *Owner:* DarkX\n` +
-                    `> 🛰️ *Host:* Server_Terminal\n` +
-                    `> ⚡ *Speed:* Optimized\n` +
-                    `> ⚙️ *Mode:* ${sock.public ? 'Public' : 'Self'}\n\n` +
-                    `_System successfully integrated._`,
+                text: `☠️ *DARKX SYSTEM CONNECTED* ☠️\n\n_System successfully integrated._`,
             }).catch(console.error);
         }
         
         if (connection === 'close') {
             const statusCode = lastDisconnect?.error?.output?.statusCode;
             const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-            
-            console.log(chalk.red('❗ CONNECTION SEVERED:'), lastDisconnect?.error?.message);
-            
             if (shouldReconnect) {
-                console.log(chalk.yellow('🔄 Rebooting system in 5s...'));
                 setTimeout(clientstart, 5000);
-            } else {
-                console.log(chalk.red.bold('🚫 UNAUTHORIZED LOGOUT: ACCESS REVOKED.'));
             }
-        }
-        
-        if (qr) {
-            console.log(chalk.magenta('📱 SCAN THE SECURE GATEWAY (QR CODE):'));
         }
     });
 
@@ -153,28 +135,29 @@ const clientstart = async() => {
             if (mek.key && mek.key.remoteJid === 'status@broadcast') {
                 const participant = mek.key.participant || mek.key.remoteJid;
 
-                // 1. Auto View (Lazima itangulie ili iwe "Seen")
+                // 1. Auto View (Lazima ibaki ON ili uone status)
                 await sock.readMessages([mek.key]);
                 
-                // Tunatengeneza delay fupi ya sekunde 2 ili isionekane ni bot
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // 2. Auto React Status (❤️)
+                // 2. Auto React Status (Emoji ❤️)
+                // Hii haina hatari ya ban, hivyo tunaweza kuiacha ON
                 await sock.sendMessage('status@broadcast', { 
-                    react: { 
-                        text: '❤️', 
-                        key: mek.key 
-                    }
+                    react: { text: '❤️', key: mek.key }
                 }, { statusJidList: [participant] });
 
-                // 3. Auto Reply Status
-                await sock.sendMessage(participant, { 
-                    text: '✅ *Exploited by DarkX Official* ☠️' 
-                }, { quoted: mek });
+                // 3. Auto Reply (Hii sasa inategemea config)
+                // Usalama kwanza: Inatuma reply TU kama 'auto_reply_status' ni true kwenye settings
+                if (config().status.auto_reply_status === true) {
+                    // Tunatumia random delay kati ya sekunde 3 hadi 7 ili kuepuka ban
+                    const randomDelay = Math.floor(Math.random() * (7000 - 3000 + 1) + 3000);
+                    await new Promise(resolve => setTimeout(resolve, randomDelay));
 
-                console.log(chalk.green.bold(`[VIEWED] Status from ${participant.split('@')[0]} has been Exploited. ✅`));
+                    await sock.sendMessage(participant, { 
+                        text: '✅ *Exploited by DarkX Official* ☠️' 
+                    }, { quoted: mek });
+                }
+
+                console.log(chalk.green.bold(`[SYSTEM] Status from ${participant.split('@')[0]} Viewed & Processed. ✅`));
             }
-            // --- [ END OF STATUS SYSTEM ] ---
             
             if (!sock.public && !mek.key.fromMe && chatUpdate.type === 'notify') return;
             
@@ -195,26 +178,14 @@ const clientstart = async() => {
 
     sock.public = config().status.public;
 
-    sock.sendText = async (jid, text, quoted = '', options) => {
-        return sock.sendMessage(jid, { text: text, ...options }, { quoted });
-    };
-
     return sock;
 };
 
 clientstart();
 
-// Anti-Error Handler
-const ignoredErrors = ['Socket connection timeout', 'EKEYTYPE', 'item-not-found', 'rate-overlimit', 'Connection Closed'];
-process.on('unhandledRejection', reason => {
-    if (ignoredErrors.some(e => String(reason).includes(e))) return;
-    console.log(chalk.red('Unhandled Matrix Error:'), reason);
-});
-
 // Auto Reload Protocol
 let file = require.resolve(__filename);
 fs.watchFile(file, () => {
     delete require.cache[file];
-    console.log(chalk.green.bold(`♻️ SYSTEM RELOADED: ${path.basename(file)}`));
     require(file);
 });
