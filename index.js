@@ -1,4 +1,4 @@
-Console.clear();
+console.clear();
 const config = () => require('./settings/config');
 process.on("uncaughtException", console.error);
 
