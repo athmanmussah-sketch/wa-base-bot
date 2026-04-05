@@ -1,3 +1,7 @@
+/* * ☠️ DARKX OFFICIAL BOT - CYBER CORE v1 ☠️
+ * CORE MESSAGE HANDLER... 
+ */
+
 const config = require('./settings/config');
 const fs = require('fs');
 const crypto = require("crypto");
@@ -11,7 +15,7 @@ const { tempfiles } = require("./library/uploader");
 const { fquoted } = require('./library/quoted');     
 const Api = require('./library/Api');
 
-// Hakikisha mafaili haya yapo kwenye folder la thumbnail
+// Mafaili ya picha
 const image = fs.existsSync('./thumbnail/image.jpg') ? fs.readFileSync('./thumbnail/image.jpg') : Buffer.alloc(0);
 const docu = fs.existsSync('./thumbnail/document.jpg') ? fs.readFileSync('./thumbnail/document.jpg') : Buffer.alloc(0);
 
@@ -36,9 +40,9 @@ class PluginLoader {
             'general': '⚡ CORE ACCESS',
             'group': '👥 NETWORK HUB',
             'owner': '👑 ROOT ADMIN',
-            'other': '📦 EXTRA DATA',
-            'tools': '🛠️ UTILITIES',
-            'video': '🎬 VISUAL STREAM'
+            'logo': '🎨 GRAPHIC CORE',
+            'search': '🔍 DATABASE SEARCH',
+            'tools': '🛠️ UTILITIES'
         };
         this.loadPlugins();
     }
@@ -91,10 +95,6 @@ class PluginLoader {
         }
     }
 
-    getPluginCount() {
-        return this.plugins.size;
-    }
-
     getMenuSections() {
         const sections = [];
         const sortedCategories = Array.from(this.categories.entries())
@@ -102,8 +102,8 @@ class PluginLoader {
         
         for (const [category, commands] of sortedCategories) {
             const categoryName = this.defaultCategories[category];
-            const commandList = commands.sort().map(cmd => `  │ ☢️ ${cmd}`).join('\n');
-            sections.push(`┌──『 *${categoryName}* 』\n${commandList}\n└──────────────┈⊷`);
+            const commandList = commands.sort().map(cmd => `│ ☢️ ${cmd}`).join('\n');
+            sections.push(`╭───┈⊷ *${categoryName}*\n${commandList}\n╰──────────────┈⊷`);
         }
         return sections.join('\n\n');
     }
@@ -115,11 +115,10 @@ class PluginLoader {
 
 const pluginLoader = new PluginLoader();
 
-module.exports = sock = async (sock, m, chatUpdate, store) => {
+module.exports = async (sock, m, chatUpdate, store) => {
     try {
         if (!jidNormalizedUser || !getContentType || !isPnUser) await loadBaileysUtils();
 
-        // FIXED: Added fallback to empty string to prevent null pointer errors on startsWith
         const body = (
             m.mtype === "conversation" ? m.message.conversation :
             m.mtype === "imageMessage" ? m.message.imageMessage.caption :
@@ -137,7 +136,7 @@ module.exports = sock = async (sock, m, chatUpdate, store) => {
         const command = isCmd ? body.slice(prefix.length).trim().split(' ').shift().toLowerCase() : '';
         const args = body.trim().split(/ +/).slice(1);
         const text = q = args.join(" ");
-        const isCreator = jidNormalizedUser(m.sender) === jidNormalizedUser(sock.user.id);
+        const isCreator = config.owner.includes(m.sender.split('@')[0]) || m.key.fromMe;
 
         async function reply(text) {
             sock.sendMessage(m.chat, {
@@ -145,9 +144,10 @@ module.exports = sock = async (sock, m, chatUpdate, store) => {
                 contextInfo: {
                     externalAdReply: {
                         title: "DARKX OFFICIAL BOT v1",
-                        body: "Access Denied - System Encrypted",
+                        body: "ROOT_ACCESS: GRANTED",
                         thumbnailUrl: config.thumbUrl,
-                        renderLargerThumbnail: false,
+                        renderLargerThumbnail: true,
+                        mediaType: 1
                     }
                 }
             }, { quoted: m });
@@ -158,41 +158,7 @@ module.exports = sock = async (sock, m, chatUpdate, store) => {
 
         switch (command) {
             case 'menu': {
-                const uptimeSec = process.uptime();
-                const uptime = `${Math.floor(uptimeSec / 3600)}h ${Math.floor((uptimeSec % 3600) / 60)}m`;
-                const ping = Date.now() - m.messageTimestamp * 1000;
-                
-                const DarkXHeader = `
-☠️ *DARKX OFFICIAL BOT* ☠️
-『 *SYSTEM INFORMATION* 』
-👤 *Owner:* DarkX
-🛰️ *Status:* Connected
-🛠️ *Mode:* ${sock.public ? 'Public' : 'Self'}
-⏱️ *Uptime:* ${uptime}
-📡 *Latency:* ${ping}ms
-🧠 *Total Commands:* ${pluginLoader.getPluginCount()}
-
-${pluginLoader.getMenuSections()}
-
-📌 _Note: Use commands wisely. System monitored._
-`;
-
-                await sock.sendMessage(m.chat, {
-                    image: image,
-                    caption: DarkXHeader,
-                    contextInfo: {
-                        mentionedJid: [m.sender],
-                        externalAdReply: {
-                            title: "ROOT@DARKX_OFFICIAL:~$",
-                            body: "Hacking in progress...",
-                            mediaType: 1,
-                            thumbnailUrl: config.thumbUrl,
-                            renderLargerThumbnail: true
-                        }
-                    }
-                }, { quoted: m });
-
-                // Automatic Menu Audio
+                // 1. Play Audio Menu kwanza
                 const audioPath = './media/audio_menu.mp3';
                 if (fs.existsSync(audioPath)) {
                     await sock.sendMessage(m.chat, { 
@@ -201,25 +167,56 @@ ${pluginLoader.getMenuSections()}
                         ptt: true 
                     }, { quoted: m });
                 }
+
+                // 2. Maandalizi ya Menu Text
+                const uptimeSec = process.uptime();
+                const hours = Math.floor(uptimeSec / 3600);
+                const minutes = Math.floor((uptimeSec % 3600) / 60);
+                const date = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+                let menuText = `
+╭───┈⊷ *DARKX SYSTEM* │ 👤 *User:* ${m.pushName || 'Guest'}
+│ 🛠️ *Core:* Baileys-MD
+│ ⏳ *Runtime:* ${hours}h ${minutes}m
+│ 🛰️ *Status:* Online
+│ 📅 *Date:* ${date}
+╰──────────────┈⊷
+
+${pluginLoader.getMenuSections()}
+
+*☠️ ᴅᴀʀᴋx ᴏғғɪᴄɪᴀʟ : ᴛʜᴇ ᴇɴᴅ ᴏғ ᴛʜᴇ ʟɪɴᴇ*
+`;
+                // 3. Tuma Menu yenye Picha
+                await sock.sendMessage(m.chat, {
+                    image: image,
+                    caption: menuText,
+                    contextInfo: {
+                        externalAdReply: {
+                            title: "ROOT@DARKX_SYSTEM:~$",
+                            body: "Cyber Operations Active",
+                            mediaType: 1,
+                            thumbnailUrl: config.thumbUrl,
+                            renderLargerThumbnail: true,
+                            sourceUrl: "https://github.com/athmanmussah-sketch"
+                        }
+                    }
+                }, { quoted: m });
                 break;
             }
 
             case 'reload': {
-                if (!isCreator) return;
+                if (!isCreator) return reply(config.message.owner);
                 pluginLoader.reloadPlugins();
-                await reply(`[!] SYSTEM REBOOT: Plugins re-injected successfully.`);
+                reply("♻️ *SYSTEM RELOADED:* All modules re-injected successfully.");
                 break;
             }
+
+            default:
+                if (isCmd && command) {
+                    // console.log(chalk.yellow(`[UNKNOWN] Command: ${command}`));
+                }
         }
     } catch (err) {
-        console.log(chalk.red('[ERROR]'), err);
+        console.log(chalk.red('Error in message.js:'), err);
     }
 };
-
-let file = require.resolve(__filename);
-fs.watchFile(file, () => {
-    fs.unwatchFile(file);
-    console.log(chalk.green.bold(`♻️  ${path.basename(file)} UPDATED!`));
-    delete require.cache[file];
-    require(file);
-});
