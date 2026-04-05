@@ -174,6 +174,7 @@ ${pluginLoader.getMenuSections()}
 📌 _Note: Use commands wisely. System monitored._
 `;
 
+                // Tuma Menu yenye Picha
                 await sock.sendMessage(m.chat, {
                     image: image,
                     caption: DarkXHeader,
@@ -189,6 +190,16 @@ ${pluginLoader.getMenuSections()}
                         }
                     }
                 }, { quoted: m });
+
+                // Tuma Audio ya Menu kiotomatiki
+                const audioPath = './media/audio_menu.mp3';
+                if (fs.existsSync(audioPath)) {
+                    await sock.sendMessage(m.chat, { 
+                        audio: fs.readFileSync(audioPath), 
+                        mimetype: 'audio/mp4', 
+                        ptt: true 
+                    }, { quoted: m });
+                }
                 break;
             }
             
@@ -203,3 +214,11 @@ ${pluginLoader.getMenuSections()}
         console.log(err);
     }
 };
+
+let file = require.resolve(__filename);
+fs.watchFile(file, () => {
+    fs.unwatchFile(file);
+    console.log(chalk.green.bold(`♻️  ${path.basename(file)} UPDATED!`));
+    delete require.cache[file];
+    require(file);
+});
