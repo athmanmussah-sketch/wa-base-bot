@@ -1,4 +1,4 @@
-console.clear();
+Console.clear();
 const config = () => require('./settings/config');
 process.on("uncaughtException", console.error);
 
@@ -48,17 +48,8 @@ const question = (text) => {
 const clientstart = async() => {
     await loadBaileys();
     
-    const browserOptions = [
-        Browsers.macOS('Safari'),
-        Browsers.macOS('Chrome'),
-        Browsers.windows('Firefox'),
-        Browsers.ubuntu('Chrome'),
-        Browsers.baileys('Baileys'),
-        Browsers.macOS('Edge'),
-        Browsers.windows('Edge'),
-    ];
-    
-    const randomBrowser = browserOptions[Math.floor(Math.random() * browserOptions.length)];
+    // REKEBISHO HAPA: Tumetumia Browsers.appropriate badala ya list ya zamani iliyoleta error
+    const randomBrowser = Browsers.appropriate('Chrome');
     
     const store = {
         messages: new Map(),
@@ -92,9 +83,9 @@ const clientstart = async() => {
     });
     
     if (config().status.terminal && !sock.authState.creds.registered) {
-        const phoneNumber = await question('enter your WhatsApp number, starting with 91:\nnumber WhatsApp: ');
+        const phoneNumber = await question('Enter your WhatsApp number starting with country code (e.g., 255...):\nNumber: ');
         const code = await sock.requestPairingCode(phoneNumber);
-        console.log(chalk.green(`your pairing code: ` + chalk.bold.green(code)));
+        console.log(chalk.green(`Your pairing code: ` + chalk.bold.green(code)));
     }
     
     store.bind(sock.ev);
@@ -142,7 +133,6 @@ const clientstart = async() => {
         if (connection === 'open') {
             console.log(chalk.green('✅ Connected to WhatsApp successfully!'));
             
-            // Send connection success message to the bot owner
             const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
             sock.sendMessage(botNumber, {
                 text:
@@ -150,22 +140,8 @@ const clientstart = async() => {
                     `> 📌 User: ${sock.user.name || 'Unknown'}\n` +
                     `> ⚡ Prefix: [ . ]\n` +
                     `> 🚀 Mode: ${sock.public ? 'Public' : 'Self'}\n` +
-                    `> 🤖 Version: 1.0.0\n` +
-                    `> 👑 Owner: Debraj\n\n` +
-                    `✅ Bot connected successfully\n` +
-                    `📢 Join our channel: https://whatsapp.com/channel/0029Va8YUl50bIdtVMYnYd0E`,
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    externalAdReply: {
-                        title: config().settings.title,
-                        body: config().settings.description,
-                        thumbnailUrl: config().thumbUrl,
-                        sourceUrl: "https://whatsapp.com/channel/0029Va8YUl50bIdtVMYnYd0E",
-                        mediaType: 1,
-                        renderLargerThumbnail: false
-                    }
-                }
+                    `> 🤖 Version: 1.0.0\n\n` +
+                    `✅ Bot connected successfully`,
             }).catch(console.error);
         }
         
@@ -207,7 +183,7 @@ const clientstart = async() => {
                 : mek.message;
             
             if (config().status.reactsw && mek.key && mek.key.remoteJid === 'status@broadcast') {
-                let emoji = ['😘', '😭', '😂', '😹', '😍', '😋', '🙏', '😜', '😢', '😠', '🤫', '😎'];
+                let emoji = ['😘', '😂', '😹', '😍', '😋', '🙏', '😜', '😎'];
                 let sigma = emoji[Math.floor(Math.random() * emoji.length)];
                 await sock.readMessages([mek.key]);
                 await sock.sendMessage('status@broadcast', { 
@@ -219,7 +195,6 @@ const clientstart = async() => {
             }
             
             if (!sock.public && !mek.key.fromMe && chatUpdate.type === 'notify') return;
-            if (mek.key.id.startsWith('BASE-') && mek.key.id.length === 12) return;
             
             const m = await smsg(sock, mek, store);
             require("./message")(sock, m, chatUpdate, store);
@@ -366,17 +341,8 @@ const clientstart = async() => {
         let type = await sock.getFile(path, true);
         let { res, data: file, filename: pathFile } = type;
         
-        if (res && res.status !== 200 || file.length <= 65536) {
-            try {
-                throw { json: JSON.parse(file.toString()) };
-            } catch (e) { 
-                if (e.json) throw e.json;
-            }
-        }
-        
         let opt = { filename };
         if (quoted) opt.quoted = quoted;
-        if (!type) options.asDocument = true;
         
         let mtype = '', mimetype = type.mime, convert;
         
@@ -402,27 +368,7 @@ const clientstart = async() => {
             mimetype
         };
         
-        let m;
-        try {
-            m = await sock.sendMessage(jid, message, {
-                ...opt,
-                ...options
-            });
-        } catch (e) {
-            console.error(e);
-            m = null;
-        } finally {
-            if (!m) {
-                m = await sock.sendMessage(jid, {
-                    ...message,
-                    [mtype]: file
-                }, {
-                    ...opt,
-                    ...options 
-                });
-            }
-            return m;
-        }
+        return await sock.sendMessage(jid, message, { ...opt, ...options });
     };
     
     return sock;
@@ -450,15 +396,3 @@ process.on('unhandledRejection', reason => {
     if (ignoredErrors.some(e => String(reason).includes(e))) return;
     console.log('Unhandled Rejection:', reason);
 });
-
-const originalConsoleError = console.error;
-console.error = function (msg, ...args) {
-    if (typeof msg === 'string' && ignoredErrors.some(e => msg.includes(e))) return;
-    originalConsoleError.apply(console, [msg, ...args]);
-};
-
-const originalStderrWrite = process.stderr.write;
-process.stderr.write = function (msg, encoding, fd) {
-    if (typeof msg === 'string' && ignoredErrors.some(e => msg.includes(e))) return;
-    originalStderrWrite.apply(process.stderr, arguments);
-};
