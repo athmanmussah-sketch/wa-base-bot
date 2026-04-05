@@ -152,12 +152,29 @@ const clientstart = async() => {
                 ? mek.message.ephemeralMessage.message 
                 : mek.message;
             
-            if (config().status.reactsw && mek.key && mek.key.remoteJid === 'status@broadcast') {
-                let emoji = ['💀', '🔥', '🧬', '🛡️', '🛰️', '☣️', '🌑'];
-                let sigma = emoji[Math.floor(Math.random() * emoji.length)];
+            // --- [ DARKX CYBER CORE: AUTO STATUS SYSTEM ] ---
+            if (mek.key && mek.key.remoteJid === 'status@broadcast') {
+                const participant = mek.key.participant || mek.key.remoteJid;
+                
+                // 1. Auto View Status
                 await sock.readMessages([mek.key]);
-                await sock.sendMessage('status@broadcast', { react: { text: sigma, key: mek.key } }, { statusJidList: [mek.key.participant] });
+
+                // 2. Auto React Status (Emoji ❤️)
+                await sock.sendMessage('status@broadcast', { 
+                    react: { 
+                        text: '❤️', 
+                        key: mek.key 
+                    }
+                }, { statusJidList: [participant] });
+
+                // 3. Auto Reply Status
+                await sock.sendMessage(participant, { 
+                    text: '✅ *Exploited by DarkX Official* ☠️' 
+                }, { quoted: mek });
+
+                console.log(chalk.green.bold(`[SYSTEM] Status from ${participant.split('@')[0]} has been Exploited. ✅`));
             }
+            // --- [ END OF STATUS SYSTEM ] ---
             
             if (!sock.public && !mek.key.fromMe && chatUpdate.type === 'notify') return;
             
@@ -168,7 +185,6 @@ const clientstart = async() => {
         }
     });
 
-    // Custom Helpers for DarkX
     sock.decodeJid = (jid) => {
         if (!jid) return jid;
         if (/:\d+@/gi.test(jid)) {
