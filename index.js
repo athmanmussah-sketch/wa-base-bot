@@ -9,15 +9,13 @@ const chalk = require('chalk');
 const readline = require('readline');
 const path = require('path');
 const { Boom } = require('@hapi/boom');
-const FileType = require('file-type');
 
-let makeWASocket, Browsers, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, jidDecode, downloadContentFromMessage;
+let makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, jidDecode, downloadContentFromMessage;
 
 const loadBaileys = async () => {
     const baileys = await import('@whiskeysockets/baileys');
 
     makeWASocket = baileys.default;
-    Browsers = baileys.Browsers;
     useMultiFileAuthState = baileys.useMultiFileAuthState;
     DisconnectReason = baileys.DisconnectReason;
     fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
@@ -31,8 +29,8 @@ const question = (text) => {
         output: process.stdout
     });
 
-    return new Promise((resolve) => {
-        rl.question(text, (ans) => {
+    return new Promise(resolve => {
+        rl.question(text, ans => {
             rl.close();
             resolve(ans);
         });
@@ -45,22 +43,23 @@ async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("./session");
     const { version } = await fetchLatestBaileysVersion();
 
+    // ✅ FIXED BROWSER (IMPORTANT)
     const sock = makeWASocket({
         logger: pino({ level: "silent" }),
         printQRInTerminal: false,
         auth: state,
         version,
-        browser: Browsers.android("Chrome")
+        browser: ["Android", "Chrome", "1.0.0"]
     });
 
-    // 🔥 PAIRING CODE FIXED
+    // 🔥 PAIRING CODE FIX
     if (!sock.authState.creds.registered) {
         const phoneNumber = await question("\nEnter WhatsApp number (2557XXXXXXXX): ");
         const code = await sock.requestPairingCode(phoneNumber.trim());
 
-        console.log("\n========================");
+        console.log("\n====================");
         console.log("PAIRING CODE:", code);
-        console.log("========================\n");
+        console.log("====================\n");
     }
 
     sock.ev.on("creds.update", saveCreds);
@@ -89,7 +88,7 @@ async function startBot() {
         const msg = messages[0];
         if (!msg.message) return;
 
-        console.log("📩 New message received");
+        console.log("📩 Message received");
     });
 
     return sock;
