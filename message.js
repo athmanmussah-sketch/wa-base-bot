@@ -2,7 +2,7 @@
  * CORE MESSAGE HANDLER... 
  */
 
-const config = require('./settings/config');
+const config = require('./settings/config'); // FIXED: Hakuna () mwishoni
 const fs = require('fs');
 const crypto = require("crypto");
 const path = require("path");
@@ -158,7 +158,6 @@ module.exports = async (sock, m, chatUpdate, store) => {
 
         switch (command) {
             case 'menu': {
-                // 1. Play Audio Menu kwanza
                 const audioPath = './media/audio_menu.mp3';
                 if (fs.existsSync(audioPath)) {
                     await sock.sendMessage(m.chat, { 
@@ -168,7 +167,6 @@ module.exports = async (sock, m, chatUpdate, store) => {
                     }, { quoted: m });
                 }
 
-                // 2. Maandalizi ya Menu Text
                 const uptimeSec = process.uptime();
                 const hours = Math.floor(uptimeSec / 3600);
                 const minutes = Math.floor((uptimeSec % 3600) / 60);
@@ -186,7 +184,6 @@ ${pluginLoader.getMenuSections()}
 
 *☠️ ᴅᴀʀᴋx ᴏғғɪᴄɪᴀʟ : ᴛʜᴇ ᴇɴᴅ ᴏғ ᴛʜᴇ ʟɪɴᴇ*
 `;
-                // 3. Tuma Menu yenye Picha
                 await sock.sendMessage(m.chat, {
                     image: image,
                     caption: menuText,
