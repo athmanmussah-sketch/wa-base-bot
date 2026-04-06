@@ -1,5 +1,5 @@
 /* * ☠️ DARKX OFFICIAL BOT - CYBER CORE v1 ☠️
- * CORE MESSAGE HANDLER... 
+ * CORE MESSAGE HANDLER [ENHANCED EDITION]
  */
 
 const config = require('./settings/config');
@@ -15,7 +15,7 @@ const { tempfiles } = require("./library/uploader");
 const { fquoted } = require('./library/quoted');     
 const Api = require('./library/Api');
 
-// Mafaili ya picha
+// Thumbnail Assets
 const image = fs.existsSync('./thumbnail/image.jpg') ? fs.readFileSync('./thumbnail/image.jpg') : Buffer.alloc(0);
 const docu = fs.existsSync('./thumbnail/document.jpg') ? fs.readFileSync('./thumbnail/document.jpg') : Buffer.alloc(0);
 
@@ -34,15 +34,15 @@ class PluginLoader {
         this.categories = new Map();
         this.pluginsDir = path.join(__dirname, 'plugins');
         this.defaultCategories = {
-            'ai': '🤖 CYBER AI',
-            'downloader': '📥 DATA EXPLOIT',
-            'fun': '🎮 SYSTEM GAME',
-            'general': '⚡ CORE ACCESS',
-            'group': '👥 NETWORK HUB',
-            'owner': '👑 ROOT ADMIN',
-            'logo': '🎨 GRAPHIC CORE',
-            'search': '🔍 DATABASE SEARCH',
-            'tools': '🛠️ UTILITIES'
+            'ai': '🤖 ᴄʏʙᴇʀ ᴀɪ',
+            'downloader': '📥 ᴅᴀᴛᴀ ᴇxᴘʟᴏɪᴛ',
+            'fun': '🎮 sʏsᴛᴇᴍ ɢᴀᴍᴇ',
+            'general': '⚡ ᴄᴏʀᴇ ᴀᴄᴄᴇss',
+            'group': '👥 ɴᴇᴛᴡᴏʀᴋ ʜᴜʙ',
+            'owner': '👑 ʀᴏᴏᴛ ᴀᴅᴍɪɴ',
+            'logo': '🎨 ɢʀᴀᴘʜɪᴄ ᴄᴏʀᴇ',
+            'search': '🔍 ᴅᴀᴛᴀʙᴀsᴇ sᴇᴀʀᴄʜ',
+            'tools': '🛠️ ᴜᴛɪʟɪᴛɪᴇs'
         };
         this.loadPlugins();
     }
@@ -138,13 +138,21 @@ module.exports = async (sock, m, chatUpdate, store) => {
         const text = q = args.join(" ");
         const isCreator = config.owner.includes(m.sender.split('@')[0]) || m.key.fromMe;
 
+        // Group Intelligence
+        const groupMetadata = m.isGroup ? await sock.groupMetadata(m.chat) : {};
+        const groupName = m.isGroup ? groupMetadata.subject : '';
+        const participants = m.isGroup ? groupMetadata.participants : [];
+        const groupAdmins = m.isGroup ? participants.filter(v => v.admin !== null).map(v => v.id) : [];
+        const isBotAdmins = m.isGroup ? groupAdmins.includes(sock.user.id.split(':')[0] + '@s.whatsapp.net') : false;
+        const isAdmins = m.isGroup ? groupAdmins.includes(m.sender) : false;
+
         async function reply(text) {
             sock.sendMessage(m.chat, {
                 text: text,
                 contextInfo: {
                     externalAdReply: {
-                        title: "DARKX OFFICIAL BOT v1",
-                        body: "ROOT_ACCESS: GRANTED",
+                        title: "ᴅᴀʀᴋx ᴏғғɪᴄɪᴀʟ sʏsᴛᴇᴍ v1",
+                        body: "ᴜsᴇʀ_sᴛᴀᴛᴜs: ᴀᴜᴛʜᴏʀɪᴢᴇᴅ",
                         thumbnailUrl: config.thumbUrl,
                         renderLargerThumbnail: true,
                         mediaType: 1
@@ -153,12 +161,12 @@ module.exports = async (sock, m, chatUpdate, store) => {
             }, { quoted: m });
         }
 
-        const pluginExecuted = await pluginLoader.executePlugin(command, sock, m, args, text, q, m.quoted || m, '', '', false, {}, '', [], '', [], false, false, false, isCreator, prefix, reply, sender);
+        const pluginExecuted = await pluginLoader.executePlugin(command, sock, m, args, text, q, m.quoted || m, '', '', false, groupMetadata, groupName, participants, '', groupAdmins, isBotAdmins, isAdmins, false, isCreator, prefix, reply, sender);
         if (pluginExecuted) return;
 
         switch (command) {
             case 'menu': {
-                // 1. Play Audio Menu kwanza
+                // 1. Audio Protocol
                 const audioPath = './media/audio_menu.mp3';
                 if (fs.existsSync(audioPath)) {
                     await sock.sendMessage(m.chat, { 
@@ -168,32 +176,32 @@ module.exports = async (sock, m, chatUpdate, store) => {
                     }, { quoted: m });
                 }
 
-                // 2. Maandalizi ya Menu Text
+                // 2. System Diagnostics
                 const uptimeSec = process.uptime();
                 const hours = Math.floor(uptimeSec / 3600);
                 const minutes = Math.floor((uptimeSec % 3600) / 60);
                 const date = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
                 let menuText = `
-╭───┈⊷ *DARKX SYSTEM* │ 👤 *User:* ${m.pushName || 'Guest'}
-│ 🛠️ *Core:* Baileys-MD
-│ ⏳ *Runtime:* ${hours}h ${minutes}m
-│ 🛰️ *Status:* Online
-│ 📅 *Date:* ${date}
+╭───┈⊷ *ᴅᴀʀᴋx ᴄʏʙᴇʀ ᴄᴏʀᴇ*
+│ 👤 *ᴜsᴇʀ:* ${m.pushName || 'ᴜɴᴋɴᴏᴡɴ'}
+│ ⏳ *ᴜᴘᴛɪᴍᴇ:* ${hours}ʜ ${minutes}ᴍ
+│ 🛰️ *ʟᴀᴛᴇɴᴄʏ:* ${new Date() - m.messageTimestamp * 1000}ᴍs
+│ 📅 *ᴅᴀᴛᴇ:* ${date}
 ╰──────────────┈⊷
 
 ${pluginLoader.getMenuSections()}
 
 *☠️ ᴅᴀʀᴋx ᴏғғɪᴄɪᴀʟ : ᴛʜᴇ ᴇɴᴅ ᴏғ ᴛʜᴇ ʟɪɴᴇ*
 `;
-                // 3. Tuma Menu yenye Picha
+                // 3. UI/UX Broadcast
                 await sock.sendMessage(m.chat, {
                     image: image,
                     caption: menuText,
                     contextInfo: {
                         externalAdReply: {
-                            title: "ROOT@DARKX_SYSTEM:~$",
-                            body: "Cyber Operations Active",
+                            title: "ʀᴏᴏᴛ@ᴅᴀʀᴋx_ᴠɪ:~ sʏsᴛᴇᴍ ᴏɴʟɪɴᴇ",
+                            body: "ᴅᴀʀᴋ ᴡᴇʙ ɪɴᴛᴇɢʀᴀᴛɪᴏɴ ᴀᴄᴛɪᴠᴇ",
                             mediaType: 1,
                             thumbnailUrl: config.thumbUrl,
                             renderLargerThumbnail: true,
@@ -205,15 +213,15 @@ ${pluginLoader.getMenuSections()}
             }
 
             case 'reload': {
-                if (!isCreator) return reply(config.message.owner);
+                if (!isCreator) return reply("⚠️ [ACCESS DENIED] - ROOT ONLY");
                 pluginLoader.reloadPlugins();
-                reply("♻️ *SYSTEM RELOADED:* All modules re-injected successfully.");
+                reply("♻️ *sʏsᴛᴇᴍ ʀᴇʙᴏᴏᴛ:* Modules re-encrypted and re-injected.");
                 break;
             }
 
             default:
                 if (isCmd && command) {
-                    // console.log(chalk.yellow(`[UNKNOWN] Command: ${command}`));
+                    // Hidden logging can go here
                 }
         }
     } catch (err) {
