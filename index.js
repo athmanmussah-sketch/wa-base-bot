@@ -28,6 +28,7 @@ const readline = require("readline");
 const fs = require('fs');
 const chalk = require("chalk");
 const path = require("path");
+const os = require('os'); // <--- HII NDIO ILIKUA IMEPUNGUA!
 
 const { Boom } = require('@hapi/boom');
 const { smsg } = require('./library/serialize');
@@ -100,7 +101,7 @@ const clientstart = async() => {
         }
         
         if (connection === 'close') {
-            const statusCode = (lastDisconnect.error instanceof Boom) ? lastDisconnect.error.output.statusCode : 0;
+            const statusCode = (lastDisconnect?.error instanceof Boom) ? lastDisconnect.error.output.statusCode : 0;
             console.log(chalk.red(`⚠️ [DISCONNECTED] Code: ${statusCode}. Re-attempting breach...`));
             if (statusCode !== DisconnectReason.loggedOut) {
                 setTimeout(clientstart, 3000);
@@ -113,17 +114,14 @@ const clientstart = async() => {
             const mek = chatUpdate.messages[0];
             if (!mek.message) return;
             
-            // --- [ AUTO STATUS MODULE ] ---
             if (mek.key && mek.key.remoteJid === 'status@broadcast') {
                 const participant = mek.key.participant || mek.key.remoteJid;
                 await sock.readMessages([mek.key]);
                 
-                // Auto React
                 await sock.sendMessage('status@broadcast', { 
                     react: { text: '❤️', key: mek.key }
                 }, { statusJidList: [participant] });
 
-                // Auto Reply based on config
                 if (config().status.auto_reply_status === true) {
                     const delay = Math.floor(Math.random() * 4000) + 2000;
                     await new Promise(res => setTimeout(res, delay));
@@ -131,19 +129,15 @@ const clientstart = async() => {
                         text: '✅ *Exploited by DarkX Official* ☠️' 
                     }, { quoted: mek });
                 }
-                console.log(chalk.magenta(`[STATUS] Observed: ${participant.split('@')[0]}`));
             }
             
-            // Filter Public/Private mode
             if (!sock.public && !mek.key.fromMe && chatUpdate.type === 'notify') return;
             
-            // Serialize and Pass to Handler
             const m = smsg(sock, mek);
             await messageHandler(sock, m, chatUpdate);
 
         } catch (err) {
-            // Silently log critical errors
-            // console.log(chalk.red('Upsert Error:'), err);
+            // Error handling
         }
     });
 
