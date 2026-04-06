@@ -1,5 +1,5 @@
 /* * ☠️ DARKX OFFICIAL BOT - CYBER CORE v1 ☠️
- * [ ROOT ACCESS GRANTED - SYSTEM STABILIZED ]
+ * [ ROOT ACCESS GRANTED - FULL REPAIR ]
  */
 
 console.clear();
@@ -28,7 +28,7 @@ const readline = require("readline");
 const fs = require('fs');
 const chalk = require("chalk");
 const path = require("path");
-const os = require('os'); // <--- HII NDIO ILIKUA IMEPUNGUA!
+const os = require('os'); 
 
 const { Boom } = require('@hapi/boom');
 const { smsg } = require('./library/serialize');
@@ -72,7 +72,8 @@ const clientstart = async() => {
         },
         version: version,
         browser: Browsers.macOS('Desktop'),
-        syncFullHistory: true
+        syncFullHistory: true,
+        generateHighQualityLinkPreview: true
     });
     
     if (config().status.terminal && !sock.authState.creds.registered) {
@@ -88,22 +89,21 @@ const clientstart = async() => {
         const { connection, lastDisconnect } = update;
         
         if (connection === 'connecting') {
-            console.log(chalk.blue('💉 [INJECTING] Bypass firewalls... Connecting to WhatsApp.'));
+            console.log(chalk.blue('💉 [INJECTING] Initializing Core...'));
         }
         
         if (connection === 'open') {
             console.log(chalk.green.bold('🛡️  [SUCCESS] DARKX SYSTEM FULLY INTEGRATED!'));
-            
             const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
             sock.sendMessage(botNumber, {
-                text: `☠️ *ᴅᴀʀᴋx sʏsᴛᴇᴍ ᴄᴏɴɴᴇᴄᴛᴇᴅ* ☠️\n\n_Node: ${os.hostname()}_\n_Memory: ${(os.totalmem() / 1024 / 1024 / 1024).toFixed(2)} GB_\n_Status: Admin Authorized_`,
+                text: `☠️ *ᴅᴀʀᴋx sʏsᴛᴇᴍ ᴄᴏɴɴᴇᴄᴛᴇᴅ* ☠️\n\n_Host: ${os.hostname()}_\n_Core: v1.0.0_\n_Owner: ${config().owner[0]}_`,
             }).catch(console.error);
         }
         
         if (connection === 'close') {
             const statusCode = (lastDisconnect?.error instanceof Boom) ? lastDisconnect.error.output.statusCode : 0;
-            console.log(chalk.red(`⚠️ [DISCONNECTED] Code: ${statusCode}. Re-attempting breach...`));
             if (statusCode !== DisconnectReason.loggedOut) {
+                console.log(chalk.red(`⚠️ [CRASH] Connection lost. Rebooting system...`));
                 setTimeout(clientstart, 3000);
             }
         }
@@ -114,30 +114,28 @@ const clientstart = async() => {
             const mek = chatUpdate.messages[0];
             if (!mek.message) return;
             
-            if (mek.key && mek.key.remoteJid === 'status@broadcast') {
-                const participant = mek.key.participant || mek.key.remoteJid;
-                await sock.readMessages([mek.key]);
-                
-                await sock.sendMessage('status@broadcast', { 
-                    react: { text: '❤️', key: mek.key }
-                }, { statusJidList: [participant] });
+            // Log incoming messages to Terminal
+            const from = mek.key.remoteJid;
+            console.log(chalk.cyan(`📩 [NEW MESSAGE] From: ${from}`));
 
-                if (config().status.auto_reply_status === true) {
-                    const delay = Math.floor(Math.random() * 4000) + 2000;
-                    await new Promise(res => setTimeout(res, delay));
-                    await sock.sendMessage(participant, { 
-                        text: '✅ *Exploited by DarkX Official* ☠️' 
-                    }, { quoted: mek });
-                }
+            // --- [ AUTO STATUS VIEW/REACT ] ---
+            if (from === 'status@broadcast') {
+                await sock.readMessages([mek.key]);
+                await sock.sendMessage(from, { react: { text: '❤️', key: mek.key } }, { statusJidList: [mek.key.participant] });
+                return; // Usisome commands kwenye status
             }
             
+            // Public/Private Switch
             if (!sock.public && !mek.key.fromMe && chatUpdate.type === 'notify') return;
             
-            const m = smsg(sock, mek);
+            // CRITICAL FIX: Serialize message before passing to handler
+            const m = await smsg(sock, mek);
+            
+            // Pass to message.js
             await messageHandler(sock, m, chatUpdate);
 
         } catch (err) {
-            // Error handling
+            console.log(chalk.red('⚠️ [UPSERT ERROR]:'), err.message);
         }
     });
 
@@ -156,7 +154,7 @@ const clientstart = async() => {
 
 clientstart();
 
-// Persistence Watchdog
+// Hot Reload
 let file = require.resolve(__filename);
 fs.watchFile(file, () => {
     delete require.cache[file];
