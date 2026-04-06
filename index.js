@@ -1,128 +1,83 @@
 /* * ☠️ DARKX OFFICIAL BOT - CYBER CORE v1 ☠️
- * [ ROOT ACCESS GRANTED - EMERGENCY FIX ]
+ * [ FINAL EMERGENCY OVERRIDE - BY G-3 ]
  */
 
 console.clear();
 const config = () => require('./settings/config');
-process.on("uncaughtException", console.error);
-
-let makeWASocket, Browsers, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, jidDecode, jidNormalizedUser, makeCacheableSignalKeyStore;
-
-const loadBaileys = async () => {
-  const baileys = await import('@whiskeysockets/baileys');
-  makeWASocket = baileys.default;
-  Browsers = baileys.Browsers;
-  useMultiFileAuthState = baileys.useMultiFileAuthState;
-  DisconnectReason = baileys.DisconnectReason;
-  fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
-  jidDecode = baileys.jidDecode;
-  jidNormalizedUser = baileys.jidNormalizedUser;
-  makeCacheableSignalKeyStore = baileys.makeCacheableSignalKeyStore;
-};
-
-const pino = require('pino');
-const readline = require("readline");
+const { smsg } = require('./library/serialize'); // Tunaiweka kama backup
+const messageHandler = require("./message");
 const fs = require('fs');
 const chalk = require("chalk");
-const os = require('os'); 
-
+const pino = require('pino');
+const os = require('os');
 const { Boom } = require('@hapi/boom');
-const { smsg } = require('./library/serialize');
-const messageHandler = require("./message");
 
-const question = (text) => {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    return new Promise((resolve) => {
-        rl.question(chalk.red.bold('root@darkx:~# ') + chalk.white(text), (answer) => {
-            resolve(answer);
-            rl.close();
-        });
-    });
+let makeWASocket, Browsers, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore;
+
+const loadBaileys = async () => {
+    const baileys = await import('@whiskeysockets/baileys');
+    makeWASocket = baileys.default;
+    Browsers = baileys.Browsers;
+    useMultiFileAuthState = baileys.useMultiFileAuthState;
+    DisconnectReason = baileys.DisconnectReason;
+    fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
+    makeCacheableSignalKeyStore = baileys.makeCacheableSignalKeyStore;
 };
 
-const clientstart = async() => {
+async function startBot() {
     await loadBaileys();
-    
-    console.log(chalk.red.bold(`
-    ██████╗  █████╗ ██████╗ ██╗  ██╗██╗  ██╗
-    ██╔══██╗██╔══██╗██╔══██╗██║ ██╔╝╚██╗██╔╝
-    ██║  ██║███████║██████╔╝█████╔╝  ╚███╔╝ 
-    ██║  ██║██╔══██║██╔══██╗██╔═██╗  ██╔██╗ 
-    ██████╔╝██║  ██║██║  ██║██║  ██╗██╔╝ ██╗
-    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝
-    [ ᴠᴇʀsɪᴏɴ: 1.0.0 | sᴛᴀᴛᴜs: ᴏɴʟɪɴᴇ | ᴅᴇᴠ: ᴍᴜssᴀʜ ]
-    `));
-
     const { state, saveCreds } = await useMultiFileAuthState(`./${config().session}`);
-    const { version } = await fetchLatestBaileysVersion();
     
     const sock = makeWASocket({
-        logger: pino({ level: "silent" }),
-        printQRInTerminal: !config().status.terminal,
         auth: {
             creds: state.creds,
             keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
         },
-        version: version,
-        browser: Browsers.macOS('Desktop'),
-        // Hizi mbili ni muhimu kwa utulivu wa connection
-        markOnlineOnConnect: true,
-        generateHighQualityLinkPreview: true
+        printQRInTerminal: true,
+        logger: pino({ level: "silent" }),
+        browser: Browsers.macOS('Desktop')
     });
-    
-    if (config().status.terminal && !sock.authState.creds.registered) {
-        const phoneNumber = await question('ENTER NUMBER (e.g. 255xxx): ');
-        const code = await sock.requestPairingCode(phoneNumber.replace(/[^0-9]/g, ''));
-        console.log(chalk.black.bgRed.bold(` 🛠️  YOUR CODE: ${code} `));
-    }
-    
+
     sock.ev.on('creds.update', saveCreds);
-    
-    sock.ev.on('connection.update', async (update) => {
+
+    sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update;
-        if (connection === 'connecting') console.log(chalk.blue('💉 Initializing Core...'));
         if (connection === 'open') {
-            console.log(chalk.green.bold('🛡️  [SUCCESS] DARKX SYSTEM FULLY INTEGRATED!'));
-            sock.sendMessage(sock.user.id, { text: `☠️ *DARKX ONLINE*` });
+            console.log(chalk.green.bold('\n✅ [CORE] SYSTEM ONLINE - DARKX V1 ACTIVATED!'));
+            sock.sendMessage(sock.user.id, { text: '☠️ DARKX IS NOW ACTIVE AND LISTENING...' });
         }
         if (connection === 'close') {
             let reason = new Boom(lastDisconnect?.error)?.output.statusCode;
-            if (reason !== DisconnectReason.loggedOut) clientstart();
+            if (reason !== DisconnectReason.loggedOut) startBot();
         }
     });
 
-    // --- HAPA NDIO PA KUREREKEBISHA ---
-    sock.ev.on('messages.upsert', async chatUpdate => {
+    // TESTER: Hii ndio itatuambia kama meseji zinafika
+    sock.ev.on('messages.upsert', async (chatUpdate) => {
         try {
-            if (chatUpdate.type !== 'notify') return;
             const mek = chatUpdate.messages[0];
             if (!mek.message) return;
 
-            // Debugger: Lazima uone hii kwenye Termux sasa!
-            console.log(chalk.magenta(`📩 [INCOMING] From: ${mek.key.remoteJid.split('@')[0]}`));
+            // 1. FORCE LOG: Kama hii haitokei, tatizo ni Session/WhatsApp connection
+            console.log(chalk.bgCyan.black(` 📩 MSG DETECTED: from [${mek.key.remoteJid}] `));
 
-            // Serialize message
-            const m = smsg(sock, mek);
-            
-            // Call the handler
+            // 2. INTERNAL SERIALIZATION (Bypass serialize.js if it fails)
+            let m = await smsg(sock, mek); 
+            if (!m || !m.body) {
+                // Kama smsg imefeli, tunatengeneza m.body yetu hapa hapa
+                m.body = mek.message.conversation || mek.message.extendedTextMessage?.text || "";
+            }
+
+            // 3. SEND TO HANDLER
             await messageHandler(sock, m, chatUpdate);
 
         } catch (err) {
-            console.log(chalk.red('⚠️ UPSERT ERROR:'), err);
+            console.log(chalk.red("FATAL ERROR:"), err);
         }
     });
 
-    // Decode JID logic
-    sock.decodeJid = (jid) => {
-        if (!jid) return jid;
-        if (/:\d+@/gi.test(jid)) {
-            let decode = jidDecode(jid) || {};
-            return decode.user && decode.server && decode.user + '@' + decode.server || jid;
-        } else return jid;
-    };
-
-    sock.public = config().status.public;
+    sock.public = true; 
     return sock;
-};
+}
 
-clientstart();
+startBot();
